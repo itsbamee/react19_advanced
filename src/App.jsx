@@ -1,5 +1,11 @@
-function App() {
-	return <></>;
-}
+import Content from './Content';
+import Header from './Header';
 
-export default App;
+export default function App() {
+	return (
+		<>
+			<Header />
+			<Content />
+		</>
+	);
+}
