@@ -1,7 +1,37 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+
 export default function App() {
+	const [Wid, setWid] = useState(0);
+	const refDiv = useRef(null);
+
+	useEffect(() => {
+		// 모션작업을 위해서 동적으로 UI 수치값을 변경해서 스타일 반영을 해야될 때 변경로직을 useEffect 안쪽에서 호출 시
+		// 이미 브라우저에 페인트가 된 이후 실행되기 때문에 화면이 깜빡거리는 layout shift 발생
+		// 상태값 변경을 통해서 리액트가 렌더링되고 화면에 페인트된 후 호출됨
+		if (refDiv.current) {
+			const widSize = refDiv.current.getBoundingClientRect().width;
+			console.log('useEffect', widSize);
+			setWid(widSize);
+		}
+	}, []);
+
+	useLayoutEffect(() => {
+		// 위와 같은 상황에서 동적으로 스타일 변경하는 로직을 useLayoutEffect에서 호출 시
+		// 리액트 렌더링 후 브라우저 페인트 전에 실행하기 때문에 실제 화면에 출력하기 직전에 연산처리하므로 layout shift 발생하지 않음
+		// 해당 구문은 상태값 변경을 통해서 리액트가 렌더링되고 화면에 페인트되기 직전에 호출됨
+		if (refDiv.current) {
+			const widSize = refDiv.current.getBoundingClientRect().width;
+			console.log('useLayoutEffect', widSize);
+			setWid(widSize);
+		}
+	}, []);
+
 	return (
 		<>
-			<h1>useLayoutEffect</h1>
+			<div ref={refDiv} style={{ width: '50%', background: 'pink', padding: '50px' }}>
+				해당 요소의 너비와 높이는 가변형
+			</div>
+			<p>{Wid}</p>
 		</>
 	);
 }
