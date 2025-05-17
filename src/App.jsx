@@ -1,21 +1,25 @@
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 export default function App() {
 	const [InputValue, setInputValue] = useState('');
 	const [MovieDate, setMovieDate] = useState([]);
 
-	// 아래와 같이 복수개의 상태값을 동시에 변경처리 할 때 로직이 무겁고 시간이 오래걸리는 상태변경 로직이 같이 있으면
-	// 우선순위를 구분하지 않았을 때 긴급하게 처리되야 하는 상태 업데이트까지 같이 늦어지면서 사용성이 나빠짐
+	const [isPending, startTransition] = useTransition();
+
 	const handleChange = (e) => {
-		// 실제 input에 반영되는 긴급 상태값
 		setInputValue(e.target.value);
 
-		const newData = [];
-		for (let i = 0; i < 10000000; i++) {
-			newData.push(i);
-		}
-		// 실시간 반영할 필요가 없는 비긴급 상태값
-		setMovieDate(newData);
+		// 우선순위를 낮춰야 되는 상태 변경로직 자체를 startTransition에 콜백함수 형태로 전달
+		// 해당 콜백 안쪽에 있는 상태 업데이트 로직은 우선순위가 낮게 설정됨
+		// 화면에 긴급하게 반영해야되는 상태 변경에 영향을 미치지 않음
+		startTransition(() => {
+			const newData = [];
+			for (let i = 0; i < 5000000; i++) {
+				newData.push(i);
+			}
+
+			setMovieDate(newData);
+		});
 	};
 
 	return (
@@ -23,6 +27,7 @@ export default function App() {
 			<h1>useTransition</h1>
 
 			<input type='text' value={InputValue} onChange={handleChange} />
+			<p>{isPending ? '로딩 중' : '로딩 완료'}</p>
 		</>
 	);
 }
@@ -39,5 +44,7 @@ export default function App() {
 	위와 같은 순서의 작업을 할 때, 상태 값이 2개 필요 (input 출력용 상태값, 수행 완료된 서버데이터를 화면에 출력용 상태값)
 	- input용 상태값은 로직처리가 무겁지 않고 화면에 바로바로 반영해야 되는 데이터 (Urgent Update)
 	- 서버 데이터 출력용 상태값은 로직처리가 무겁고 화면에 바로바로 출력할 필요가 없는 데이터 (Not Urgent Update)
-
+	
+	[강제로 우선순위를 낮춘 상태값의 변경완료유무, 특정 상태값의 우선순위를 낮추는 함수] = useTransition
+	const [isPending, startTransition] = useTransition()
 */
